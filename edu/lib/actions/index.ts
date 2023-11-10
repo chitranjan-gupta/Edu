@@ -57,7 +57,7 @@ export async function getProductById(productId: string) {
 export async function getAllProducts() {
     try {
         connectToDB();
-        const products = await Product.find().exec();
+        const products: ProductType[] = await Product.find().exec();
         return products;
     } catch (error: any) {
         throw new Error(error.message);

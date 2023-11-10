@@ -1,44 +1,20 @@
 "use client";
 import React from 'react'
 import { scrapeAndStoreProduct } from '@/lib/actions';
+import { scrape } from '@/lib/scraper';
 import { FormEvent, useState } from 'react'
-
-const isValidAmazonProductURL = (url: string) => {
-    try {
-        const parsedURL = new URL(url);
-        const hostname = parsedURL.hostname;
-
-        if (
-            hostname.includes('amazon.com') ||
-            hostname.includes('amazon.') ||
-            hostname.endsWith('amazon')
-        ) {
-            return true;
-        }
-    } catch (error) {
-        return false;
-    }
-
-    return false;
-}
 
 function Searchbar() {
     const [searchPrompt, setSearchPrompt] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         //await scrape("https://www.adda247.com/product-onlineliveclasses/3937/bank-maha-pack-ibps-sbi-rrb?examCategory=rbi-assistant&productId=4204")
-
         event.preventDefault();
-
-        const isValidLink = isValidAmazonProductURL(searchPrompt);
-
-        if (!isValidLink) return alert('Please provide a valid Amazon link')
-
         try {
             setIsLoading(true);
-
+            scrape(searchPrompt)
             // Scrape the product page
-            const product = await scrapeAndStoreProduct(searchPrompt);
+            //const product = await scrapeAndStoreProduct(searchPrompt);
         } catch (error) {
             console.log(error);
         } finally {

@@ -1,11 +1,10 @@
 "use server";
 import { logger } from "../logger"
-import axios from 'axios';
+import axios, { AxiosRequestConfig } from 'axios';
 import * as cheerio from 'cheerio';
 import { extractCurrency, extractDescription, extractPrice } from '../utils';
 
-export async function scrapeAmazonProduct(url: string) {
-    if (!url) return;
+function BrightDataProxy() {
     // BrightData proxy configuration
     const username: string = String(process.env.BRIGHT_DATA_USERNAME);
     const password: string = String(process.env.BRIGHT_DATA_PASSWORD);
@@ -21,10 +20,23 @@ export async function scrapeAmazonProduct(url: string) {
         port: port,
         rejectUnauthorized: false,
     }
+    return options
+}
 
+export async function scrapeAmazonProduct(url: string) {
+    if (!url) return;
+    const parsedURL: URL = new URL(url);
+    const hostname: string = parsedURL.hostname;
+    if (
+        !(hostname.includes('amazon.com') ||
+            hostname.includes('amazon.') ||
+            hostname.endsWith('amazon'))
+    ) {
+        return;
+    }
     try {
         // Fetch the product page
-        const response = await axios.get(url, options);
+        const response = await axios.get(url, BrightDataProxy());
         const $ = cheerio.load(response.data);
 
         // Extract the product title
@@ -79,23 +91,12 @@ export async function scrapeAmazonProduct(url: string) {
 
         return data;
     } catch (error: any) {
-        logger.error(error)
+        throw new Error(`Failed to scrape the product: ${error.message}`);
     }
 }
 
 export async function scrapePWCourse(url: string) {
     if (!url) return;
-    const username = "", password = "", port = 22225;
-    const session_id = (1000000 * Math.random()) | 0;
-    const options = {
-        auth: {
-            username: `${username}-session-${session_id}`,
-            password
-        },
-        host: '',
-        port,
-        rejectUnauthorized: false,
-    }
     try {
         const response = await axios.get(url);
         //const response = await axios.get(url, options);
@@ -108,17 +109,6 @@ export async function scrapePWCourse(url: string) {
 
 export async function scrapeVedantu(url: string) {
     if (!url) return;
-    const username = "", password = "", port = 22225;
-    const session_id = (1000000 * Math.random()) | 0;
-    const options = {
-        auth: {
-            username: `${username}-session-${session_id}`,
-            password
-        },
-        host: '',
-        port,
-        rejectUnauthorized: false,
-    }
     try {
         const response = await axios.get(url);
         //const response = await axios.get(url, options);
@@ -132,17 +122,6 @@ export async function scrapeVedantu(url: string) {
 
 export async function scrapeByju(url: string) {
     if (!url) return;
-    const username = "", password = "", port = 22225;
-    const session_id = (1000000 * Math.random()) | 0;
-    const options = {
-        auth: {
-            username: `${username}-session-${session_id}`,
-            password
-        },
-        host: '',
-        port,
-        rejectUnauthorized: false,
-    }
     try {
         const response = await axios.get(url);
         //const response = await axios.get(url, options);
@@ -156,17 +135,6 @@ export async function scrapeByju(url: string) {
 
 export async function scrapeAdda247(url: string) {
     if (!url) return;
-    const username = "", password = "", port = 22225;
-    const session_id = (1000000 * Math.random()) | 0;
-    const options = {
-        auth: {
-            username: `${username}-session-${session_id}`,
-            password
-        },
-        host: '',
-        port,
-        rejectUnauthorized: false,
-    }
     try {
         const response = await axios.get(url);
         //const response = await axios.get(url, options);
@@ -180,24 +148,15 @@ export async function scrapeAdda247(url: string) {
 
 export async function scrape(url: string) {
     if (!url) return;
-    const username = "", password = "", port = 22225;
-    const session_id = (1000000 * Math.random()) | 0;
-    const options = {
-        auth: {
-            username: `${username}-session-${session_id}`,
-            password
-        },
-        host: '',
-        port,
-        rejectUnauthorized: false,
-    }
     try {
-        const response = await axios.get(url);
-        //const response = await axios.get(url, options);
-        const $ = cheerio.load(response.data);
+        const res = await axios.get(url)
+        //const res = await axios.get(url, BrightDataProxy());
+        //console.log(res.data)
+        const $ = cheerio.load(res.data);
         console.log("Data")
-        console.log($(".pdpOrignalPrice").text())
+        console.log($(".price-text--price-part--2npPm"))
     } catch (error: any) {
-        throw new Error(`Failed to scrape product: ${error.message}`)
+        logger.error(error);
+        throw new Error(`Failed to scrape product: ${error.message}`);
     }
 }
